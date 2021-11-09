@@ -12,12 +12,19 @@ class CurveChartView: UIView {
     let verticalInset: CGFloat = 20
     let chartLineWidth: CGFloat = 2
     let gradientLayer = CAGradientLayer()
-
+    let chartGradientColors: [UIColor] = [.green, .blue]
+    
+    var chartView: UIView = UIView()
+    var pointViews: [UIView] = []
     var pointsArr: [CGPoint] = []
+    var bezierPath: UIBezierPath = UIBezierPath()
     
     // test data
     var data: [CGFloat] = [51, 35, 62, 100, 84, 90] {
         didSet {
+            for _ in 0..<data.count {
+                pointsArr.append(CGPoint())
+            }
             setNeedsDisplay()
         }
     }
@@ -25,44 +32,53 @@ class CurveChartView: UIView {
     func coordYFor(index: Int) -> CGFloat {
         return (bounds.height - 20) - ((bounds.height - 20) - verticalInset) * (data[index] / (data.max() ?? 0))
     }
-
-    override func draw(_ rect: CGRect) {
-
-        let path = quadCurvedPath()
+    
+    func initChartView(){
+        bezierPath = quadCurvedPath()
         
-        let chartView = UIView(frame: CGRect(x: self.bounds.minX, y: self.bounds.minY, width: self.bounds.width, height: self.bounds.height - 20))
-        
+        chartView = UIView(frame: CGRect(x: self.bounds.minX, y: self.bounds.minY, width: self.bounds.width, height: self.bounds.height - 20))
         gradientLayer.frame = CGRect(x: chartView.bounds.minX, y: chartView.bounds.minY + chartLineWidth / 2, width: chartView.bounds.width, height: chartView.bounds.height)
         gradientLayer.colors = chartGradientColors
         chartView.layer.insertSublayer(gradientLayer, at: 0)
         self.insertSubview(chartView, at: 0)
         
-        path.lineWidth = chartLineWidth
+        for i in 0..<data.count {
+            pointViews.append(getPointView(point: pointsArr[i], data: data[i]))
+            
+            self.addSubview(pointViews[i])
+        }
+    }
+    
+    override func awakeFromNib() {
+        initChartView()
+    }
+    
+    override func draw(_ rect: CGRect) {
+        bezierPath.lineWidth = chartLineWidth
         UIColor.blue.setStroke()
-        path.stroke()
-        
-        path.addLine(to: CGPoint(x: chartView.bounds.width - horizontalInset, y: chartView.bounds.height))
-        path.addLine(to: CGPoint(x: horizontalInset, y: chartView.bounds.height))
-        
+        bezierPath.stroke()
+
+        bezierPath.addLine(to: CGPoint(x: chartView.bounds.width - horizontalInset, y: chartView.bounds.height))
+        bezierPath.addLine(to: CGPoint(x: horizontalInset, y: chartView.bounds.height))
+
         let mask = CAShapeLayer()
-        mask.path = path.cgPath
+        mask.path = bezierPath.cgPath
         chartView.layer.mask = mask
         chartView.layer.masksToBounds = false
-        
-        for i in 0..<pointsArr.count {
-            self.addSubview(getPointView(point: pointsArr[i], data: data[i]))
-        }
+
+        super.draw(rect)
     }
     
 
     func quadCurvedPath() -> UIBezierPath {
+        pointsArr = []
         
         let path = UIBezierPath()
         let step = bounds.width / CGFloat(data.count - 1) - (horizontalInset /  CGFloat(data.count - 1))
 
         var p1 = CGPoint(x: horizontalInset, y: coordYFor(index: 0))
         path.move(to: p1)
-
+        
         pointsArr.append(p1)
         
         if (data.count == 2) {
