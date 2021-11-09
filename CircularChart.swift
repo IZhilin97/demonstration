@@ -15,12 +15,15 @@ class CircularChart: UIView {
     }
     */
     var inited: Bool = false
+    let outerView: UIView = UIView()
+    let innerCircle: UIView = UIView()
+    let outerBackground: UIView = UIView()
     
     @IBInspectable var fillColor: UIColor?
     @IBInspectable var innerColor: UIColor?
     @IBInspectable var percent: CGFloat = 0.0 {
         didSet{
-            initCircle()
+            setPaths()
         }
     }
     @IBInspectable var chartLineWidth: CGFloat = 5
@@ -33,24 +36,23 @@ class CircularChart: UIView {
         super.init(coder: coder)
     }
     
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        initCircle()
+    }
+    
     override func willMove(toWindow newWindow: UIWindow?) {
         super.willMove(toWindow: newWindow)
-        initCircle()
+//        initCircle()
     }
     
     override var bounds: CGRect {
         didSet {
-            initCircle()
+            setPaths()
         }
     }
     
-    func initCircle(){
-        if inited {
-            self.subviews[2].removeFromSuperview()
-            self.subviews[1].removeFromSuperview()
-            self.subviews[0].removeFromSuperview()
-        }
-        
+    func setPaths(){
         let center = CGPoint(x: self.bounds.width / 2, y: self.bounds.height / 2)
         
         var radius: CGFloat = 0.0
@@ -60,9 +62,6 @@ class CircularChart: UIView {
             radius = self.bounds.width / 2
         }
         
-        let outerBackground = UIView(frame: CGRect(x: self.bounds.minX, y: self.bounds.minY, width: self.frame.width, height: self.frame.height))
-        outerBackground.backgroundColor = UIColor(red: 0.769, green: 0.769, blue: 0.769, alpha: 1)
-
         let outerBackgroundPath = UIBezierPath(arcCenter: center, radius: radius, startAngle: -CGFloat.pi / 2, endAngle:  2 * CGFloat.pi - CGFloat.pi / 2, clockwise: true)
         outerBackgroundPath.lineWidth = 10
         outerBackgroundPath.stroke()
@@ -70,12 +69,6 @@ class CircularChart: UIView {
         outerBackgroundPathMask.path = outerBackgroundPath.cgPath
         outerBackground.layer.mask = outerBackgroundPathMask
         outerBackground.layer.masksToBounds = false
-        self.insertSubview(outerBackground, at: 0)
-        
-        
-        let outerView = UIView(frame: CGRect(x: self.bounds.minX, y: self.bounds.minY, width: self.frame.width, height: self.frame.height))
-        outerView.backgroundColor = fillColor ?? .black
-        self.insertSubview(outerView, at: 1)
         
         let path = UIBezierPath(arcCenter: center, radius: radius, startAngle: -CGFloat.pi / 2, endAngle:  ((2 * CGFloat.pi) * CGFloat(percent)) - CGFloat.pi / 2, clockwise: true)
         path.addLine(to: center)
@@ -86,12 +79,6 @@ class CircularChart: UIView {
         outerView.layer.mask = mask
         outerView.layer.masksToBounds = false
         
-        //--------------------------------------
-        
-        let innerCircle = UIView(frame: CGRect(x: self.bounds.minX, y: self.bounds.minY, width: self.frame.width, height: self.frame.height))
-        innerCircle.backgroundColor = innerColor ?? .green
-
-
         let innerPath = UIBezierPath(arcCenter: center, radius: radius - chartLineWidth, startAngle: -CGFloat.pi / 2, endAngle:  2 * CGFloat.pi - CGFloat.pi / 2, clockwise: true)
         innerPath.lineWidth = 10
         innerPath.stroke()
@@ -99,8 +86,37 @@ class CircularChart: UIView {
         innerMask.path = innerPath.cgPath
         innerCircle.layer.mask = innerMask
         innerCircle.layer.masksToBounds = false
-
+    }
+    
+    func initCircle(){
+        outerBackground.backgroundColor = UIColor(red: 0.769, green: 0.769, blue: 0.769, alpha: 1)
+        outerBackground.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(outerBackground)
+        
+        outerBackground.leftAnchor.constraint(equalTo: self.leftAnchor).isActive = true
+        outerBackground.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        outerBackground.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        outerBackground.rightAnchor.constraint(equalTo: self.rightAnchor).isActive = true
+        
+        outerView.backgroundColor = fillColor ?? .black
+        outerView.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(outerView)
+        
+        outerView.leftAnchor.constraint(equalTo: self.leftAnchor).isActive = true
+        outerView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        outerView.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        outerView.rightAnchor.constraint(equalTo: self.rightAnchor).isActive = true
+        
+        innerCircle.backgroundColor = innerColor ?? .green
+        innerCircle.translatesAutoresizingMaskIntoConstraints = false
         self.insertSubview(innerCircle, at: 2)
-        inited = true
+        
+        innerCircle.leftAnchor.constraint(equalTo: self.leftAnchor).isActive = true
+        innerCircle.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        innerCircle.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        innerCircle.rightAnchor.constraint(equalTo: self.rightAnchor).isActive = true
+        
+        setPaths()
+        layoutIfNeeded()
     }
 }
