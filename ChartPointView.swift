@@ -9,7 +9,14 @@ class ChartPointView: UIView{
     
     var radius: CGFloat
     
-    override func draw(_ rect: CGRect) {
+    var containerView: UIView = UIView()
+    var pointView: UIView = UIView()
+    var whiteView: UIView = UIView()
+    var innerView: UIView = UIView()
+
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        
         drawCirclePoint()
         drawLabel()
     }
@@ -17,11 +24,15 @@ class ChartPointView: UIView{
     init(frame: CGRect, radius: CGFloat) {
         self.radius = radius
         super.init(frame: frame)
+        drawCirclePoint()
+        drawLabel()
     }
     
     required init?(coder: NSCoder) {
-        self.radius = 0.0
+        self.radius = 3.0
         super.init(coder: coder)
+        drawCirclePoint()
+        drawLabel()
     }
     
     func drawLabel(){
@@ -30,8 +41,9 @@ class ChartPointView: UIView{
         let tailWidth: CGFloat = 7
         let tailInset: CGFloat = 7
         
-        let containerView = UIView(frame: CGRect(x: self.bounds.minX, y: self.bounds.minY, width: self.bounds.width, height: self.bounds.height - radius))
+        containerView = UIView(frame: CGRect(x: self.bounds.minX, y: self.bounds.minY, width: self.bounds.width, height: self.bounds.height - radius))
         containerView.backgroundColor = .blue
+        self.addSubview(containerView)
         
         let path = UIBezierPath()
         path.move(to: CGPoint(x: cornerRadius, y: 0))
@@ -52,12 +64,13 @@ class ChartPointView: UIView{
         containerView.layer.mask = mask
         containerView.layer.masksToBounds = false
         
-        self.addSubview(containerView)
+        
     }
     
     func drawCirclePoint(){
-        let pointView = UIView(frame: CGRect(x: self.bounds.midX - radius / 2, y: self.bounds.maxY - radius, width: radius, height: radius))
+        pointView = UIView(frame: CGRect(x: self.bounds.midX - radius / 2, y: self.bounds.maxY - radius, width: radius, height: radius))
         pointView.backgroundColor = .lightGray
+        self.addSubview(pointView)
         
         let circlePath = UIBezierPath(arcCenter: CGPoint(x: pointView.bounds.midX, y: pointView.bounds.midY), radius: radius / 2, startAngle: -CGFloat.pi / 2, endAngle:  2 * CGFloat.pi - CGFloat.pi / 2, clockwise: true)
         
@@ -65,26 +78,26 @@ class ChartPointView: UIView{
         mask.path = circlePath.cgPath
         pointView.layer.mask = mask
         pointView.layer.masksToBounds = false
-        self.addSubview(pointView)
         
-        let whiteView = UIView(frame: pointView.frame)
+        whiteView = UIView(frame: pointView.frame)
         let whiteCirclePath = UIBezierPath(arcCenter: CGPoint(x: pointView.bounds.midX, y: pointView.bounds.midY), radius: (radius / 2) - 1, startAngle: -CGFloat.pi / 2, endAngle:  2 * CGFloat.pi - CGFloat.pi / 2, clockwise: true)
         whiteView.backgroundColor = .white
+        self.addSubview(whiteView)
         
         let whiteMask = CAShapeLayer()
         whiteMask.path = whiteCirclePath.cgPath
         whiteView.layer.mask = whiteMask
         whiteView.layer.masksToBounds = false
-        self.addSubview(whiteView)
         
-        let innerView = UIView(frame: pointView.frame)
+        
+        innerView = UIView(frame: pointView.frame)
         let innerCirclePath = UIBezierPath(arcCenter: CGPoint(x: pointView.bounds.midX, y: pointView.bounds.midY), radius: (radius / 2 < 3) ? (radius / 2) : 3, startAngle: -CGFloat.pi / 2, endAngle:  2 * CGFloat.pi - CGFloat.pi / 2, clockwise: true)
         innerView.backgroundColor = .blue
+        self.addSubview(innerView)
         
         let innerMask = CAShapeLayer()
         innerMask.path = innerCirclePath.cgPath
         innerView.layer.mask = innerMask
         innerView.layer.masksToBounds = false
-        self.addSubview(innerView)
     }
 }
